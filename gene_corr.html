@@ -1,0 +1,211 @@
+---
+layout: default
+title: Gene Correlation Graph Visualization
+---
+
+
+
+<!-- <head>
+ <meta charset="utf-8">
+
+
+h1 {
+  font-family: "Helvetica Neue";
+  margin: 40px auto;
+  font-size: 48px;
+  width: 1300px;
+  min-height: 50px;
+  background-color: white;
+}
+
+</style>
+</head> -->
+
+
+<h1 style="font-family:Helvetica Neue"> Graph Representation </h1>
+<p class="paragraph1"> Select the data:
+<select id="select_file">
+	<option value="1" selected="selected">Protein Monomers</option>
+	<!-- <option value="2">100000graph</option> -->
+	<option value="2">Protein Complexes</option>
+	<option value="3">RNA</option>
+	<!-- <option value="2">full graph</option> -->
+</select>
+<button type="button" id="submit" onclick=start_load()>Submit</button></p>
+<br/>
+
+<p > Directions: Press 'd' to pause visualization, press 'f' to discretize visualization
+<a href="hierarchical_edge.html"> or click here to go to hierarchical. </a><br/><br/>
+Description: Below will appear a node for each type of RNA, monomer, or complex.<br/>The node
+will be placed depending on its expression level.<br/> The graph will update through time, as shown by the progess bar.
+</p>
+<br/><br/>
+<p>
+Low Expression<a style="padding-left:30em">High Expression</a><br/>
+<a style="padding-left:16em">Progress: <a id="bin_num">1</a> / 124</a><br/>
+</p>
+<script src="d3/d3.v3.min.js"></script>
+<script>
+
+var bin_number=0; // hold the current bin number
+var on = true; // whether the interval is on
+var width = 1200,
+    height = 500;
+
+var radius = 8;
+var high = 40;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-40)
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+var node;
+var link;
+var progress;
+var updateColor=null; // updates graph every second
+
+function main(file) {
+on = true;
+
+d3.json(file, function(error, graph) {
+  if (error) throw error;
+
+  force
+      .nodes(graph.nodes)
+      .links(graph.links);
+
+link = svg.selectAll(".link_gene_corr")
+      .data(graph.links)
+    .enter().append("line")
+      .attr("class", "link_gene_corr")
+      .style("stroke-width", 2)
+	  .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+
+  node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", radius).style("fill", "#00FF88")
+	  .call(force.drag);
+
+  node.append("title")
+      .text(function(d) { return d.name; });
+
+  var rects={};
+  for (var t=0; t<=5; t++) { // set up the 5 rectangles
+    rects[t] = svg.append("rect").attr("x", 10 + (250 * t)).attr("y", 35)
+			  .attr("width", 120)
+			  .attr("height", height-70)
+			  .attr("fill-opacity", .02)
+			  .attr("stroke-opacity", 1)
+			  .attr("stroke", "black")
+			  .attr("stroke-width", 3);
+
+  }
+
+  // The progress bar.
+  var rects = svg.append("rect").attr("width", width).attr("height", 15)
+              .attr("fill-opacity", 0)
+			  .attr("stroke-opacity", 0.2)
+			  .attr("stroke", "black")
+			  .attr("stroke-width", 3);
+
+  progress = svg.append("rect").attr("fill-opacity", 1).attr("fill-color", "#000000").attr("width",  width).attr("height", 15).attr("stroke-opacity", 0.3)
+			  .attr("stroke", "black")
+			  .attr("stroke-width", 3);
+
+  // initialize graph.
+  switchColor();
+
+});
+
+if (updateColor == null) { updateColor = setInterval(switchColor, 1000); }
+}
+
+
+var one = false;
+
+
+function switchColor() {
+    if (!on) return;
+	node.style("fill", function (d) {
+		return ("rgb(" + Math.floor(255 - (d.data[bin_number] * 510 / high))
+		    + ","  + Math.floor((d.data[bin_number] * 510 / high) - 255)  + ",0)");
+	});
+
+	node.attr("cx", position)
+        .attr("cy", function(d) { return ((Math.random() * (height-100))+50); });
+
+	// Hard-coded how to get the node locations.
+    link
+	    .attr("x1", function(d) { return node[0][d.source].cx.baseVal.value; }) // d.source.x
+        .attr("y1", function(d) { return node[0][d.source].cy.baseVal.value; }) // d.source.y
+        .attr("x2", function(d) { return node[0][d.target].cx.baseVal.value; }) // d.target.x
+        .attr("y2", function(d) { return node[0][d.target].cy.baseVal.value; }); // d.target.y
+
+	document.getElementById("bin_num").innerHTML = (bin_number+1);
+
+	progress.attr("fill-opacity", 0).attr("width", (bin_number/123) * width);
+	bin_number = (bin_number+1) % 124;
+
+}
+
+function position (d) {
+// Place in one of five rectangles depending on value
+    var val = d.data[bin_number];
+	if (val <= 4) {
+	    return (Math.random()*100+20);
+	} else if (val <= 14) {
+	    return (Math.random()*100 + 270);
+	} else if (val <= 28) {
+	    return (Math.random()*100+520);
+	} else if (val <= 40) {
+	    return (Math.random()*100+770);
+	} else {
+	    return (Math.random()*100+1020);
+	}
+
+}
+
+// Select the data to display.
+function start_load() {
+  on = false;
+  bin_number=0;
+  var selection1 = document.getElementById("select_file");
+  var str = selection1.options[selection1.selectedIndex].text;
+  svg.selectAll(".node").remove();
+  svg.selectAll(".link_gene_corr").remove();
+  svg.selectAll("rect").remove();
+  if (str == 'Protein Monomers') {
+    main('output/monomer_graph1.json');
+  } else if (str == 'Protein Complexes') {
+    main('output/complex_graph1.json');
+  } else if (str == 'RNA') {
+    main("output/RNA_graph1.json");
+  }
+}
+
+window.onkeyup = function(e) {
+    var key = e.keyCode ? e.keyCode : e.which;
+    console.log('Key:  ' + key);
+	if (key == 68) {
+	    e.preventDefault();
+		on = !on;
+	} else if (key == 70) {
+	    e.preventDefault();
+		on = true;
+		switchColor();
+		on=false;
+	}
+}
+</script>

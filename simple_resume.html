@@ -1,0 +1,121 @@
+---
+layout: default
+title: Resume
+---
+
+<div> <h1> Education </h1> </div>
+
+<div id="OSU"> <p class="paragraph1"> <a> The Ohio State University (August 2015 - August 2017) </a> </p> </div>
+<div id="OSU_desc">  </div>
+
+<div id="FIT"> <p class="paragraph1"> <a> Florida Institute of Technology (August 2011 - May 2015) </a> </p> </div>
+<div id="FIT_desc">  </div>
+
+<div> <h1> Experience </h1> </div>
+
+<div id="JMI"> <p class="paragraph1"> <a> JMI Labs - Data Analyst (September 2017 - Current) </a> </p> </div>
+<div id="JMI_desc">  </div>
+
+<div id="ENSCO"> <p class="paragraph1"> <a> ENSCO, Inc. Analytical Software Intern (May 2015 - August 2015, June 2017 - August 2017) </a> </p> </div>
+<div id="ENSCO_desc">  </div>
+
+<div id="MAC"> <p class="paragraph1"> <a> Mathematics Advancement Tutor at FIT (September 2014 - May 2015) </a> </p> </div>
+<div id="MAC_desc">  </div>
+
+<div id="NCSU"> <p class="paragraph1"> <a> North Carolina State University REU (May 2014 - August 2014) </a> </p> </div>
+<div id="NCSU_desc">  </div>
+
+<div id="VT"> <p class="paragraph1"> <a> Virginia Tech REU (May 2013 - August 2013) </a> </p> </div>
+<div id="VT_desc">  </div>
+
+<script type="text/javascript">
+
+// $('#OSU').load('html/OSU.htm');
+$('#OSU_desc').load('html/OSU_desc.htm');
+$('#FIT_desc').load('html/FIT_desc.htm');
+
+$('#MAC_desc').load('html/MAC_desc.htm');
+
+$('#ENSCO_desc').load('html/ENSCO_desc.htm');
+
+$('#NCSU_desc').load('html/NCSU_desc.htm');
+
+$('#VT_desc').load('html/VT_desc.htm');
+
+$('#JMI_desc').load('html/JMI_desc.htm');
+
+document.getElementById('OSU_desc').style.display='none';
+document.getElementById('FIT_desc').style.display='none';
+
+document.getElementById('MAC_desc').style.display='none';
+document.getElementById('ENSCO_desc').style.display='none';
+document.getElementById('NCSU_desc').style.display='none';
+document.getElementById('VT_desc').style.display='none';
+document.getElementById('JMI_desc').style.display='none';
+
+
+$(document).ready(function(){
+    $('#OSU').click(function () {
+      var x = document.getElementById('OSU_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#FIT').click(function () {
+      var x = document.getElementById('FIT_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#MAC').click(function () {
+      var x = document.getElementById('MAC_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#ENSCO').click(function () {
+      var x = document.getElementById('ENSCO_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#NCSU').click(function () {
+      var x = document.getElementById('NCSU_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#VT').click(function () {
+      var x = document.getElementById('VT_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+
+    $('#JMI').click(function () {
+      var x = document.getElementById('JMI_desc');
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
+      } else {
+          x.style.display = 'none';
+      }
+    });
+});
+</script>

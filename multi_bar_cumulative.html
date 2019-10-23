@@ -1,0 +1,297 @@
+---
+layout: default
+title: Grouped Bar Chart
+---
+
+<meta charset="utf-8">
+<style>
+
+.axis .domain {
+  display: none;
+}
+
+.line {
+  fill: none;
+  /*stroke: purple;*/
+  stroke-width: 3.5px;
+}
+</style>
+
+<p> Choose a file to graph: <input type="file" id="myFile" multiple size="50" onchange="load_file()"></p>
+<p> The formatting of the file is a csv with a header with names, and also the first column should be called "Name".
+<a href="data/multi_bar_data.csv" target="_blank"> Example file. </a> </p>
+<p> Select the distribution you want to display. <select id="dis_fun" onchange="load_file()">
+  <option value="CDF">CDF</option>
+  <option value="PDF">PDF</option>
+  <option value="CDF_discrete">CDF Discrete</option>
+  <option value="PDF_discrete">PDF Discrete</option>
+  <option value="None">None</option>
+</select>
+ </p>
+
+<svg width="960" height="500" style="background-color: #FFFFFF;"></svg>
+
+<script src="d3/d3.v4.min.js"></script>
+<script src="js/jstat.min.js"></script>
+
+<script>
+
+var da, da2;
+var jstats;
+
+var dis_fun = document.getElementById("dis_fun");
+
+var svg = d3.select("svg"),
+    margin = {top: 20, right: 40, bottom: 30, left: 40},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var x0 = d3.scaleBand()
+    .rangeRound([0, width])
+    .paddingInner(0.1);
+
+var x1 = d3.scaleBand()
+    .padding(0.05);
+
+var y = d3.scaleLinear()
+    .rangeRound([height, 0]);
+
+// var ycum = d3.scaleLinear().rangeRound([height, 0]);
+var ycum = d3.scaleLinear().domain([0, 1]).rangeRound([height, 0]);
+
+// var yAxis2 = d3.svg.axis()
+//                .scale(ycum)
+//                .orient('right');
+
+function getColors () {
+  return (d3.scaleOrdinal()
+      .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "#ffa500"]));
+}
+
+var z = getColors ();
+
+
+// multi_bar_data
+function load_multi_chart(s) {
+d3.csv(s, function(d, i, columns) {
+  for (var i = 1, n = columns.length; i < n; ++i) d[columns[i]] = +d[columns[i]];
+
+  return d;
+}, function(error, data) {
+  if (error) {
+    console.log("Error, file cannot be opened or is not correct format.");
+    throw error;
+  }
+
+  d3.select("rect").selectAll("*").remove();
+  d3.select("text").selectAll("*").remove();
+  d3.select("line").selectAll("*").remove();
+  d3.select("g").selectAll("*").remove();
+  d3.select("path").selectAll("*").remove();
+
+  jstats = [];
+  data2 = [];
+
+  var names = data.map(x => x[data.columns[0]]);
+
+  for (var i = 1; i < data.columns.length; ++i) {
+    data2[i] = [];
+    var dataset = data.map(x => x[data.columns[i]]);
+    // accumulate data
+    var dataset_cum = [dataset[0]];
+    for(var j=1; j < dataset.length; j++){
+      dataset_cum[j] = dataset_cum[j-1] + dataset[j];
+    }
+
+    var full = full_data(dataset, names);
+    var jstattmp = this.jStat(full); // dataset
+    var normtmp = jstattmp.normal(jstattmp.mean(), jstattmp.stdev());
+
+    //var max = Math.max.apply(null, dataset);
+    for(var j=0; j < dataset.length; j++){
+      data2[i][j] = {};
+      data2[i][j]['x'] = data[j][data.columns[i]];
+      if (dis_fun.value.includes("CDF")) {
+        data2[i][j]['cum'] = normtmp.cdf(j);
+      } else if (dis_fun.value.includes("PDF")) {
+
+        data2[i][j]['cum'] = normtmp.pdf(j);
+      } else if (dis_fun.value == "None") {
+        // Do nothing!
+      }
+      // data2[i][j]['cum'] = normtmp.cdf(dataset_cum[j]); // data[j][data.columns[i]]
+    }
+
+    if (dis_fun.value.includes("PDF")) {
+      var max = Math.max.apply(null, data2[i].map(x => x.cum));
+      for(var j=0; j < dataset.length; j++){
+        data2[i][j]['cum'] = data2[i][j]['cum'] / max;
+      }
+      //data2[i][j]['cum'] = normtmp.pdf(j);
+    }
+  }
+
+  da = data;
+
+  z = getColors(); // Reset the color assignments
+
+  var keys = data.columns.slice(1);
+
+  x0.domain(data.map(function(d) { return d.Name; })); // d.State
+  x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+  y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })/*  * 1.15 */]).nice();
+
+  g.append("g")
+    .selectAll("g")
+    .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { return "translate(" + x0(d.Name) + ",0)"; }) // d.State
+    .selectAll("rect")
+    .data(function(d) { return keys.map(function(key) { return {key: key, value: d[key]}; }); })
+    .enter().append("rect")
+      .attr("x", function(d) { return x1(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", x1.bandwidth())
+      .attr("height", function(d) { return height - y(d.value); })
+      .attr("fill", function(d) { /* console.log(d.key); */ return z(d.key); });
+
+
+  //Draw CDF line
+  var guide;
+
+  if (dis_fun.value.includes("discrete")) {
+    guide = d3.line()
+        .x(function(d){ /* console.log(x0(d.x)); */ return x0(d.x) })
+        .y(function(d){ /* console.log((d.cum)); */ return ycum(d.cum); });
+  } else {
+    guide = d3.line()
+        .x(function(d){ /* console.log(x0(d.x)); */ return x0(d.x) })
+        .y(function(d){ /* console.log((d.cum)); */ return ycum(d.cum); })
+        .curve(d3.curveBasis)
+        ;
+  }
+
+
+  for (var i = 1; i < data.columns.length; i++) { //
+    var dataset = data.map(x => x[data.columns[i]]);
+    var datatmp = [];
+    for(var j=0; j < dataset.length; j++){
+      datatmp[j] = {};
+      datatmp[j]["x"] = data[j][data.columns[0]];
+      // console.log(x0(data[j][data.columns[0]]));
+      datatmp[j]["cum"] = data2[i][j]['cum'];
+    }
+    // console.log(datatmp);
+    jstats = datatmp;
+    var line = g.append('path')
+          .datum(datatmp)
+          .attr('d', guide)
+          .attr('class', 'line')
+          .attr('stroke', z(data.columns[i]));
+  }
+
+  // Draw all the axes
+  g.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x0));
+
+  g.append("g")
+      .attr("class", "axis")
+      .call(d3.axisLeft(y).ticks(null, "s"))
+    .append("text")
+      .attr("x", 2)
+      .attr("y", y(y.ticks().pop()) + 0.5)
+      .attr("dy", "0.32em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .attr("font-family", "Arial Narrow")
+      .text("Frequency");
+
+  g.append("g")
+      .attr("class", "y axis")
+       .attr("transform", "translate(" + [width, 0] + ")")
+      .call(d3.axisRight(ycum).ticks(null, "s"))
+    .append("text")
+      .attr("x", 6)
+      .attr("y", y(y.ticks().pop()) + 0.5)
+      .attr("dy", "-1em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .attr("font-family", "Arial Narrow")
+      // .attr("transform", "rotate(-90)")
+      .text("CDF");
+
+  // Draw the legend
+  var legend = g.append("g")
+      .attr("font-family", "Arial Narrow")
+      .attr("font-size", 10)
+      // .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(keys.slice().reverse())
+    .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * 19 + ")"; });
+
+  var legend_y = 15;
+  var legend_x = 15;
+
+  legend.append("rect")
+      .attr("x", legend_x)
+      .attr("y", legend_y)
+      .attr("width", 19)
+      .attr("height", 19)
+      .attr("fill", z);
+
+  legend.append("text")
+      .attr("x", legend_x + 22)
+      .attr("y", 9.5 + legend_y)
+      .attr("dy", "0.32em")
+      .text(function(d) { return d; });
+});
+}
+
+load_multi_chart("data/multi_bar_data2.csv");
+
+function load_file() {
+  var x = document.getElementById("myFile");
+    var txt = "";
+    if ('files' in x) {
+      if (x.files[0]) {
+        var url = window.URL.createObjectURL(x.files[0]);
+        load_multi_chart(url);
+        window.URL.revokeObjectURL(url);
+
+        console.log("updated using " + x.files[0].name);
+      } else {
+        load_multi_chart("data/multi_bar_data2.csv");
+      }
+    }
+}
+
+// Assumes linearity on the x scale
+function full_data(d) {
+  // if (d.length != col.length) {
+  //   console.log("ERROR: data and column are not same length");
+  // }
+  var full = [];
+  for (var i = 0; i < d.length; ++i) {
+    for (var j = 0; j < d[i]; j++) {
+      full.push(i);
+    }
+  }
+  return full;
+}
+
+var x_tmp = document.getElementById("myFile");
+x_tmp = null;
+
+</script>
+
+<p> <a href="https://bl.ocks.org/mbostock/3887051" target="_blank"> Reference for multi bar chart </a></p>
+<p> <a href="https://bl.ocks.org/daluu/5f67cefcf26483c6b555" target="_blank"> Reference for CDF </a> </p>
+<p> <a href="http://bl.ocks.org/emmasaunders/c25a147970def2b02d8c7c2719dc7502" target="_blank"> Reference for interpolation </a> </p>
+<p> <a href="https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files" target="_blank"> Reference for uploading files button </a></p>
+<!-- https://bl.ocks.org/mbostock/3887051 -->

@@ -1,0 +1,112 @@
+
+<html>
+	<header>
+		<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+		<script src="../js/jquery.min.js" type="text/javascript"></script>
+		<link href='https://fonts.googleapis.com/css?family=Cinzel' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Cinzel Decorative' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Philosopher' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet'>
+		<!-- <title>{{ page.title }}</title> -->
+		<title>Ross Donatelli</title>
+		<link rel="stylesheet" type="text/css" href="../css/main.css">
+		<meta charset="UTF-8">
+		<!-- <a> {{ page.title }} </a> -->
+	</header>
+	<body>
+	<!-- <div id="para" class="para"> -->
+	<!-- https://www.w3schools.com/howto/howto_css_parallax.asp -->
+
+<!-- Side panel -->
+<div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn2"
+	onclick="closeNavi()" >&times;</a><a href="javascript:void(0)"
+	class="closebtn" onclick="closeNavi()" id="closeNav">&times;</a>
+	<button type="button" class="odd_button" onclick="window.location.href='https://rosstelli.herokuapp.com/'"><div class="menu_text">Entry Notes Website</div></button>
+	<button type="button" class="odd_button" onclick="window.location.href='../gene_corr.html'"><div class="menu_text">Gene Correlation Visualization</div></button>
+	<button type="button" class="even_button" onclick="window.location.href='../hierarchical_edge.html'"><div class="menu_text">Gene Correlation Hierarchical</div></button>
+	<button type="button" class="odd_button" onclick="window.location.href='../multi_bar_cumulative.html'"><div class="menu_text">Grouped Bar Chart with CDF</div></button>
+	<button type="button" class="even_button" onclick="window.location.href='../nn.html'"><div class="menu_text">Neural Network Example</div></button>
+</div>
+
+<!-- Use any element to open the sidenav -->
+
+	<!-- Navigation at the top of the page -->
+	<nav>
+		<ul id="header_list">
+			<li><button type="button" class="header_button" onclick="openNav()">PROJECTS</button></li>
+  		<li id="home_header"><button type="button" class="header_button" onclick="window.location.href='.'">HOME</li>
+  		<li id="resume_header"><button type="button" class="header_button" onclick="window.location.href='../resume.html'">RESUME</li>
+			<li id="about_header"><button type="button" class="header_button" onclick="window.location.href='../about.html'">ABOUT ME</li>
+			<!-- <li id="website_header"><button type="button" class="header_button" onclick="window.location.href='../website.html'">WEBSITE (HOW-TO)</li> -->
+		</ul>
+	</nav>
+
+	<div id="main">
+
+	{{ content }}
+
+	</div>
+
+<!-- Footer stuff https://stackoverflow.com/questions/15725098/how-to-align-footer-text-on-the-right-and-on-the-left -->
+	<footer>
+	<ul>
+	  <li><div class="header_box"><a href="mailto:donatelliross@gmail.com">Email</a></div></li>
+	  <li><div class="header_box"><a href="../Donatelli_Ross_Resume.pdf" target="_blank">Resume(PDF)</a></div></li>
+	  <li><div class="header_box"><a href="https://www.linkedin.com/in/ross-donatelli-a22ab3b2" target="_blank">LinkedIn</a></div></li>
+	</ul><div class="version" class="paragraph1">Version 0.1.0</div>
+	</footer>
+
+	<!-- <div class="extra-picture"> </div> -->
+<script>
+var _start = "0px";
+document.getElementById("mySidenav").style.width = _start;
+
+var closeNav = document.getElementById('closeNav');
+closeNav.style.display = 'none';
+// if (closeNav.style.display === 'none') {
+//
+// } else {
+// 		closeNav.style.display = 'none';
+// }
+// https://www.w3schools.com/howto/howto_js_sidenav.asp
+/* Set the width of the side navigation to 250px and the left margin of the page content to 250px and add a black background color to body */
+function openNav() {
+    document.getElementById("mySidenav").style.width = "75%";//"250px"; // 50%
+    //document.getElementById("main").style.marginLeft = "250px";
+    document.body.style.backgroundColor = "rgba(0,0,0,0.87)";
+		closeNav.style.display = 'block';
+}
+
+/* Set the width of the side navigation to 0 and the left margin of the page content to 0, and the background color of body to white */
+function closeNavi() {
+    document.getElementById("mySidenav").style.width = _start;
+    //document.getElementById("main").style.marginLeft = "0";
+    document.body.style.backgroundColor = "#2f2f2f";
+		closeNav.style.display = 'none';
+}
+
+</script>
+
+<script type="text/javascript">
+	// var colors = ["#2F2F2F", "#312B2B", "#322626", "#342222",
+	// "#351E1E", "#371A1A", "#381515", "#3A1111", "#3B0D0D",
+	// "#3D0909", "#3E0404", "#400000", "#400000", "#3E0404",
+	// "#3D0909", "#3B0D0D", "#3A1111", "#381515", "#371A1A",
+	// "#351E1E", "#342222", "#322626", "#312B2B", "#2F2F2F"];
+	//
+	// var i = 1;
+	//
+	// window.setInterval(function(){
+	// 	document.body.style.backgroundColor = colors[i];
+	// 	i++;
+	// 	if (i === colors.length){
+	// 		i=0;
+	// 	}
+	// }, 5000);
+</script>
+	<!-- </div> -->
+	</body>
+</html>

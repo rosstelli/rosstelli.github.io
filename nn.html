@@ -1,0 +1,81 @@
+---
+layout: default
+title: Neural Network Example
+---
+
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+
+<p>
+The following is code for a neural network example.
+</p>
+
+<div class="indent">
+  <div class="white">
+    <pre class="prettyprint">
+# https://www.r-bloggers.com/fitting-a-neural-network-in-r-neuralnet-package/
+# https://www.kaggle.com/uciml/breast-cancer-wisconsin-data/data
+
+setwd('../nn')
+breast_cancer &lt;- read.csv("breast_cancer_2.csv")
+# breast_cancer$Class &lt;- as.numeric(tmp)
+breast_cancer[, 1] &lt;- NULL; # Remove first column
+breast_cancer$X &lt;- NULL;
+tmp &lt;- rep(0, times=length(breast_cancer$diagnosis))
+tmp[as.numeric(breast_cancer$diagnosis) == 1] &lt;- -1
+tmp[as.numeric(breast_cancer$diagnosis) == 2] &lt;- 1
+breast_cancer$diagnosis &lt;- as.numeric(tmp)
+
+index &lt;- sample(1:nrow(breast_cancer),round(0.75*nrow(breast_cancer)))
+train &lt;- breast_cancer[index,]
+test &lt;- breast_cancer[-index,]
+
+
+
+maxs &lt;- apply(breast_cancer, 2, max)
+mins &lt;- apply(breast_cancer, 2, min)
+library(MASS)
+scaled &lt;- as.data.frame(scale(breast_cancer, center = mins, scale = maxs - mins))
+
+train_ &lt;- scaled[index,]
+test_ &lt;- scaled[-index,]
+
+################################
+# Comparison
+lm.fit &lt;- glm(diagnosis~., data=train_)
+summary(lm.fit)
+pr.lm &lt;- predict(lm.fit,test_)
+MSE.lm &lt;- sum((pr.lm - test_$diagnosis)^2)/nrow(test_)
+################################
+
+library(neuralnet)
+n &lt;- names(train_)
+f &lt;- as.formula(paste("diagnosis ~", paste(n[!n %in% "diagnosis"], collapse = " + ")))
+nn &lt;- neuralnet(f,data=train_,hidden=c(5,3),linear.output=T)
+
+plot(nn)
+
+pr.nn &lt;- compute(nn, test_[,(2:ncol(test_))])
+
+pr.nn_ &lt;- pr.nn$net.result*(max(breast_cancer$diagnosis)-min(breast_cancer$diagnosis))+min(breast_cancer$diagnosis)
+test.r &lt;- (test_$diagnosis)*(max(breast_cancer$diagnosis)-min(breast_cancer$diagnosis))+min(breast_cancer$diagnosis)
+
+MSE.nn &lt;- sum((test.r - pr.nn_)^2)/nrow(test_)
+print(MSE.nn)
+
+##################################################
+# Large Neural Network
+
+nn &lt;- neuralnet(f,data=train_,hidden=c(29,25,21,17,13,9,7,5,3),linear.output=T)
+
+plot(nn)
+
+pr.nn &lt;- compute(nn, test_[,(2:ncol(test_))])
+
+pr.nn_ &lt;- pr.nn$net.result*(max(breast_cancer$diagnosis)-min(breast_cancer$diagnosis))+min(breast_cancer$diagnosis)
+test.r &lt;- (test_$diagnosis)*(max(breast_cancer$diagnosis)-min(breast_cancer$diagnosis))+min(breast_cancer$diagnosis)
+
+MSE.nn &lt;- sum((test.r - pr.nn_)^2)/nrow(test_)
+print(MSE.nn)
+    </pre>
+  </div>
+</div>
